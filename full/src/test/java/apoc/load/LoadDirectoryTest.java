@@ -16,6 +16,7 @@ import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
@@ -270,14 +271,14 @@ public class LoadDirectoryTest {
         FileUtils.forceDelete(file2);
     }
 
-    @Test
+    @Test(expected = QueryExecutionException.class)
     public void testRemoveListenerWithNotExistingName() {
         try {
-            testResult(db, "CALL apoc.load.directory.async.remove('notExisting')", result -> {
-            });
+            System.out.println(db.executeTransactionally("CALL apoc.load.directory.async.remove('notExisting')", Map.of(), Result::resultAsString));
         } catch (RuntimeException e) {
+            final Throwable rootCause = ExceptionUtils.getRootCause(e);
             String expectedMessage = "Listener with name: notExisting doesn't exists";
-            assertEquals(expectedMessage, e.getMessage());
+            assertEquals(expectedMessage, rootCause.getMessage());
             throw e;
         }
     }
